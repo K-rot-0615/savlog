@@ -2,14 +2,25 @@
 # -*- coding: utf-8 -*-
 
 from bs4 import BeautifulSoup
+from PIL import Image
 import urllib.request as req
 import argparse
 import sys, codecs
 import io
+import re
 import os
 import os.path
 
 pageNum = 0
+
+
+def return_html(url):
+    headers = {"User-Agent": "Mozilla/5.0"}
+    request = req.Request(url=url, headers=headers)
+    html = req.urlopen(request).read().decode('utf-8')
+    soup = BeautifulSoup(html, 'lxml')
+    return soup
+
 
 def savlog_general(url):
     authors = []
@@ -17,11 +28,7 @@ def savlog_general(url):
 
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-    headers = {"User-Agent": "Mozilla/5.0"}
-    request = req.Request(url=url, headers=headers)
-    html = req.urlopen(request).read().decode('utf-8')
-    soup = BeautifulSoup(html, 'lxml')
-
+    soup = return_html(url)
     spans = soup.find_all('span', class_ = 'heading')
     for author in spans:
         authors.append(author.find('span', class_ = 'author'))
@@ -35,44 +42,77 @@ def savlog_general(url):
 def savlog_individual(url,member_path):
     titles = []
     bodies = []
+    days = []
+    images = []
     global pageNum
 
+    # make individual folder
+    if not os.path.isdir(member_path):
+        os.mkdir(member_path)
+
+    # convert us-ascii to utf-8
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-    headers = {"User-Agent": "Mozilla/5.0"}
-    request = req.Request(url=url, headers=headers)
-    html = req.urlopen(request).read().decode('utf-8')
-    soup = BeautifulSoup(html, 'lxml')
+    soup = return_html(url)
 
     entrytitle = soup.find_all('span',class_='entrytitle')
     entrybody = soup.find_all('div', class_='entrybody')
+    entrybottom = soup.find_all('div', class_='entrybottom')
 
+    # get each blog titles
     for title in entrytitle:
         titles.append(title.find('a'))
 
+    # get each sentences
     for body in entrybody:
         sentence = ''
-        for one_sentence in body.find_all('div'):
-            sentence += one_sentence.text
+        image = []
+        for div in body.find_all('div'):
+            sentence += div.text
+            for img in div.find_all('img'):
+                image.append(img['src'])
+
+        each_images = '_'.join(image)
+        images.append(each_images)
+
         bodies.append(sentence)
 
-    if os.path.isdir(member_path) == False:
-        os.mkdir(member_path)
+    # get each date
+    for day in entrybottom:
+        split_word = day.text.split()
+        word = split_word[0]
+        split_day = word.split('/')
+        date = '_'.join(split_day)
+        days.append(date)
 
-    if len(titles) == len(bodies):
+    # title matches sentence
+    if len(titles) == len(bodies) and len(bodies) == len(days) and len(days) == len(titles):
+        os.chdir(member_path)
         for num in range(len(titles)):
-            print ("title is %s and content is %s" % (titles[num].text, bodies[num]))
+            #print (days[num])
+            save_path = './' + days[num]
+            if not os.path.isdir(save_path):
+                os.mkdir(save_path)
+            os.chdir(save_path)
+            write_file = titles[num].text + '.txt'
+            with open(write_file, 'w', encoding='utf-8') as f:
+                f.write(bodies[num])
+                f.close()
+            counter = 1
+            split_image = images[num].split('_')
+            for save_image in split_image:
+                #print (save_image)
+                image = req.urlopen(save_image)
+                image_file = 'img' + str(counter) + '.jpg'
+                with open(image_file, 'wb') as f:
+                    f.write(image.read())
+                    f.close()
+                counter += 1
+            os.chdir('../')
+            #print (titles[num].text, bodies[num])
         pageNum += 1
     else:
         pass
-
-
-def return_url(url):
-    headers = {"User-Agent": "Mozilla/5.0"}
-    request = req.Request(url=url, headers=headers)
-    html = req.urlopen(request).read().decode('utf-8')
-    soup = BeautifulSoup(html, 'lxml')
-    return soup
 
 
 if __name__ == '__main__':
@@ -81,6 +121,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     url = "http://blog.nogizaka46.com/"
+    name = ""
 
     if args.name == '':
         savlog_general(url)
@@ -167,9 +208,9 @@ if __name__ == '__main__':
         if pageNum == 0:
             savlog_individual(firstsearch_url, member_path)
         else:
-            new_name = name + "/?p=" + pageNum
+            new_name = name + "/?p=" + str(pageNum)
             nextsearch_url = url + new_name
-            if return_url(firstsearch_url) == return_url(nextsearch_url):
+            if return_html(firstsearch_url) == return_html(nextsearch_url):
                 break
             else:
                 savlog_individual(nextsearch_url, member_path)
