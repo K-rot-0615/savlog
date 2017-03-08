@@ -277,7 +277,7 @@ if __name__ == '__main__':
     roop_counter = 1
 
     while True:
-        print (date)
+        print ('search date is ' + date)
         counter = 0
         current_url = url + name + "?d=" + date
         roop_counter += 1
@@ -291,10 +291,17 @@ if __name__ == '__main__':
         if counter == len(first_url_days) == len(current_url_days):
             counter = 0
             # just in case
-            suspicious_month = str(int(month)-1)
-            suspicious_date = year + suspicious_month
+            suspicious_month = str(0) + str(int(month)-1)
+            if int(month) == 1:
+                suspicious_month = str(12)
+                suspicious_year = str(int(year)-1)
+            else:
+                suspicious_month = str(0) + str(int(month)-1)
+                suspicious_year = year
+            suspicious_date = suspicious_year + suspicious_month
             suspicious_url = url + name + "?d=" + suspicious_date
             suspicious_days = return_date(suspicious_url)
+            print ('suspicious date is ' + suspicious_date)
             for i in range(len(suspicious_days)):
                 if first_url_days[i] == suspicious_days[i]:
                     counter += 1
@@ -302,6 +309,10 @@ if __name__ == '__main__':
             if counter == len(first_url_days) == len(suspicious_days):
                 print ('nothing!!!!')
                 break
+            else:
+                month = suspicious_month
+                year = suspicious_year
+                date = suspicious_date
 
         else:
             print ('start')
