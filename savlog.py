@@ -33,12 +33,31 @@ def return_date(url):
         split_word = day.text.split()
         word = split_word[0]
         split_day = word.split('/')
-        day1 = split_day[0]
-        day2 = split_day[1]
-        date = day1 + day2
+        year = split_day[0]
+        month = split_day[1]
+        date = year + month
         days.append(date)
 
     return days  
+
+
+def return_date2(url):
+    _url = url
+    days = []
+    soup = return_html(_url)
+    entrybottom = soup.find_all('div', class_='entrybottom')
+    # get each date
+    for day in entrybottom:
+        split_word = day.text.split()
+        word = split_word[0]
+        split_day = word.split('/')
+        year = split_day[0]
+        month = split_day[1]
+        day = split_day[2]
+        date = year + month + day
+        days.append(date)
+
+    return days
 
 
 def savlog_general(url):
@@ -65,8 +84,8 @@ def savlog_individual(url,member_path):
 
     # make individual member's folder or change current path to member path
     if not os.path.isdir(member_path):
-        #os.chmod("./members/", 0o777)
         os.mkdir(member_path)
+        os.chmod(member_path, 0o777)
 
     soup = return_html(url)
 
@@ -78,20 +97,24 @@ def savlog_individual(url,member_path):
     for title in entrytitle:
         titles.append(title.find('a'))
 
-    # get each sentences
+    # get each sentences and images
     for body in entrybody:
         sentence = ''
         image = []
         for div in body.find_all('div'):
             sentence += div.text
-            for img in div.find_all('img'):
-                image.append(img['src'])
-
-        each_images = '_'.join(image)
-        images.append(each_images)
-
         bodies.append(sentence)
 
+        for img in body.find_all('img'):
+            image.append(img['src'])
+        each_images = '_'.join(image)
+        if each_images != '':
+            images.append(each_images)
+
+        print ('images start!!')
+        #print (each_images)
+        print ('images finish!!')
+    
     # get each date
     for day in entrybottom:
         split_word = day.text.split()
@@ -117,15 +140,19 @@ def savlog_individual(url,member_path):
                 f.write(bodies[num])
                 f.close()
             counter = 1
-            split_image = images[num].split('_')
-            for save_image in split_image:
-                #print (save_image)
-                image = req.urlopen(save_image)
-                image_file = 'img' + str(counter) + '.jpg'
-                with open(image_file, 'wb') as f:
-                    f.write(image.read())
-                    f.close()
-                counter += 1
+            # 画像が無いブログの次が上手くいかない？
+            if len(images) != 0:
+                split_image = images[num].split('_')
+                print(split_image)
+                for save_image in split_image:
+                    #print (save_image)
+                    image = req.urlopen(save_image)
+                    image_file = 'img' + str(counter) + '.jpg'
+                    with open(image_file, 'wb') as f:
+                        f.write(image.read())
+                        f.close()
+                    counter += 1
+
             os.chdir('../')
             #print (titles[num].text, bodies[num])
 
@@ -147,8 +174,8 @@ def next_pages(url, search_url, name, member_path, year, month, date):
     
     # page 2 doesn't exsits
     counter = 0
-    days1 = return_date(_search_url)
-    days2 = return_date(nextsearch_url)
+    days1 = return_date2(_search_url)
+    days2 = return_date2(nextsearch_url)
     a = len(days2) if len(days1)>len(days2) else len(days1)
     for i in range(a):
         if days1[i] == days2[i]:
@@ -185,6 +212,10 @@ if __name__ == '__main__':
 
     # convert us-ascii to utf-8
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    
+    if os.path.isdir('./members') == False:
+        os.mkdir('./members')
+        os.chmod('./members', 0o777)
 
     url = "http://blog.nogizaka46.com/"
     name = ""
@@ -192,7 +223,8 @@ if __name__ == '__main__':
     year = today.strftime('%Y')
     month = today.strftime('%m')
     current_date = year + month
-    date = current_date
+    #date = current_date
+    date = str(2013) + str(0) + str(3)
 
     if args.name == '':
         savlog_general(url)
