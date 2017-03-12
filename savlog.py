@@ -106,14 +106,17 @@ def savlog_individual(url,member_path):
         bodies.append(sentence)
 
         for img in body.find_all('img'):
-            image.append(img['src'])
+            emoji_remover = re.search(r"gif", img['src'])
+            if emoji_remover:
+                print("絵文字は嫌い！")
+            else:
+                image.append(img['src'])
         each_images = '_'.join(image)
-        if each_images != '':
-            images.append(each_images)
+        images.append(each_images)
 
-        print ('images start!!')
+        #print ('images start!!')
         #print (each_images)
-        print ('images finish!!')
+        #print ('images finish!!')
     
     # get each date
     for day in entrybottom:
@@ -140,8 +143,9 @@ def savlog_individual(url,member_path):
                 f.write(bodies[num])
                 f.close()
             counter = 1
-            # 画像が無いブログの次が上手くいかない？
-            if len(images) != 0:
+            if images.count('') > 0:
+                pass
+            else:
                 split_image = images[num].split('_')
                 print(split_image)
                 for save_image in split_image:
@@ -224,7 +228,7 @@ if __name__ == '__main__':
     month = today.strftime('%m')
     current_date = year + month
     #date = current_date
-    date = str(2013) + str(0) + str(3)
+    date = str(2012) + str(0) + str(5)
 
     if args.name == '':
         savlog_general(url)
