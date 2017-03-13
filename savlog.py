@@ -103,7 +103,8 @@ def savlog_individual(url,member_path):
         image = []
         for div in body.find_all('div'):
             sentence += div.text
-        bodies.append(sentence)
+        correct_sentence = re.sub(r'\s', '\n', sentence)
+        bodies.append(correct_sentence)
 
         for img in body.find_all('img'):
             emoji_remover = re.search(r"gif", img['src'])
@@ -111,7 +112,7 @@ def savlog_individual(url,member_path):
                 print("絵文字は嫌い！")
             else:
                 image.append(img['src'])
-        each_images = '_'.join(image)
+        each_images = '$'.join(image)
         images.append(each_images)
 
         #print ('images start!!')
@@ -126,7 +127,7 @@ def savlog_individual(url,member_path):
         date = '_'.join(split_day)
         days.append(date)
 
-    # title matches sentence
+    # the size of titles matches that of bodies and days
     if len(titles) == len(bodies) and len(bodies) == len(days) and len(days) == len(titles):
         os.chdir(member_path)
         for num in range(len(titles)):
@@ -138,15 +139,14 @@ def savlog_individual(url,member_path):
             else:
                 os.chdir(save_path)
             
-            write_file = titles[num].text + '.txt'
+            write_file = titles[num].text.replace('/', '_') + '.txt'
             with open(write_file, 'w', encoding='utf-8') as f:
                 f.write(bodies[num])
                 f.close()
             counter = 1
-            if images.count('') > 0:
-                pass
-            else:
-                split_image = images[num].split('_')
+            # except for the empty case
+            if images.count('') == 0:
+                split_image = images[num].split('$')
                 print(split_image)
                 for save_image in split_image:
                     #print (save_image)
@@ -156,9 +156,7 @@ def savlog_individual(url,member_path):
                         f.write(image.read())
                         f.close()
                     counter += 1
-
             os.chdir('../')
-            #print (titles[num].text, bodies[num])
 
     os.chdir('../../')
 
@@ -175,7 +173,7 @@ def next_pages(url, search_url, name, member_path, year, month, date):
 
     new_name = _name + "/?p=" + str(pageNum) + "&d=" + _date
     nextsearch_url = _url + new_name
-    
+
     # page 2 doesn't exsits
     counter = 0
     days1 = return_date2(_search_url)
@@ -201,7 +199,7 @@ def next_pages(url, search_url, name, member_path, year, month, date):
             print ("previous month")
             _month = str(calculated_month)
         return _year, _month
-            
+
     # page 2 or more exists
     else:
         savlog_individual(nextsearch_url, _member_path)
@@ -216,7 +214,7 @@ if __name__ == '__main__':
 
     # convert us-ascii to utf-8
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    
+
     if os.path.isdir('./members') == False:
         os.mkdir('./members')
         os.chmod('./members', 0o777)
@@ -227,8 +225,8 @@ if __name__ == '__main__':
     year = today.strftime('%Y')
     month = today.strftime('%m')
     current_date = year + month
-    #date = current_date
-    date = str(2012) + str(0) + str(5)
+    date = current_date
+    #date = str(2012) + str(0) + str(3)
 
     if args.name == '':
         savlog_general(url)
