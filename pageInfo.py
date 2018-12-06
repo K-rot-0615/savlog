@@ -8,7 +8,7 @@ import urllib.request as req
 
 def return_html(url):
     headers = {
-        "User-Agent": "Mozilla/5.0"}
+        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0"}
     request = req.Request(url=url, headers=headers)
     html = req.urlopen(request).read().decode('utf-8')
     soup = BeautifulSoup(html, 'lxml')

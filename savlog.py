@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from PIL import Image
-from datetime import datetime
 from pageInfo import return_html, return_date, return_date2
 import urllib.request as req
 import argparse
@@ -34,7 +33,6 @@ def savlog_individual(url, member_path):
     bodies = []
     days = []
     images = []
-    global pageNum
 
     # make individual member's folder or change current path to member path
     if os.path.isdir(member_path) == False:
@@ -108,7 +106,7 @@ def savlog_individual(url, member_path):
     os.chdir('../../')
 
 
-def next_pages(url, search_url, name, member_path, year, month, date):
+def next_pages(url, search_url, name, member_path, year, month, date, pageNum):
     _url = url
     _search_url = search_url
     _name = name
@@ -116,9 +114,9 @@ def next_pages(url, search_url, name, member_path, year, month, date):
     _year = year
     _month = month
     _date = date
-    global pageNum
+    _pageNum = pageNum
 
-    new_name = _name + "/?p=" + str(pageNum) + "&d=" + _date
+    new_name = _name + "/?p=" + str(_pageNum) + "&d=" + _date
     nextsearch_url = _url + new_name
 
     # page 2 doesn't exsits
@@ -131,7 +129,7 @@ def next_pages(url, search_url, name, member_path, year, month, date):
             counter += 1
 
     if counter == a:
-        pageNum = 1
+        _pageNum = 1
         calculated_month = int(_month) - 1
 
         # move to previous month
@@ -150,5 +148,5 @@ def next_pages(url, search_url, name, member_path, year, month, date):
     # page 2 or more exists
     else:
         savlog_individual(nextsearch_url, _member_path)
-        pageNum += 1
+        _pageNum += 1
         return next_pages(_url, _search_url, _name, _member_path, _year, _month, _date)

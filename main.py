@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from pageInfo import return_date
-from savlog import savlog_general, savlog_individual
-import urllib.request as req
+from savlog import savlog_general, savlog_individual, next_pages
 import argparse
 import sys
 import codecs
@@ -11,8 +11,6 @@ import io
 import re
 import os
 import os.path
-
-pageNum = 1
 
 
 def main():
@@ -36,6 +34,7 @@ def main():
     month = today.strftime('%m')
     current_date = year + month
     date = current_date
+    pageNum = 1
     #date = str(2012) + str(0) + str(3)
 
     if args.name == '':
@@ -120,7 +119,7 @@ def main():
         elif args.name == "吉田綾乃クリスティー":
             name = "ayano.christie.yoshida/"
         elif args.name == "与田祐希":
-            name = "yuki.yoda"
+            name = "yuuki.yoda"
         elif args.name == "若月佑美":
             name = "yumi.wakatsuki/"
         elif args.name == "渡辺みり愛":
@@ -181,7 +180,7 @@ def main():
             print('pagenum 0 finished!')
 
             next_year, next_month = next_pages(
-                url, search_url, name, member_path, year, month, date)
+                url, search_url, name, member_path, year, month, date, pageNum)
             year = next_year
             month = next_month
             date = year + month
