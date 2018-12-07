@@ -149,4 +149,4 @@ def next_pages(url, search_url, name, member_path, year, month, date, pageNum):
     else:
         savlog_individual(nextsearch_url, _member_path)
         _pageNum += 1
-        return next_pages(_url, _search_url, _name, _member_path, _year, _month, _date)
+        return next_pages(_url, _search_url, _name, _member_path, _year, _month, _date, _pageNum)
