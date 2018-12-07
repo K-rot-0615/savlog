@@ -44,8 +44,6 @@ def main():
             name = "manatsu.akimoto/"
         elif args.name == "生田絵梨花":
             name = "erika.ikuta/"
-        elif args.name == "生駒里奈":
-            name = "rina.ikoma/"
         elif args.name == "伊藤かりん":
             name = "karin.itou/"
         elif args.name == "伊藤純奈":
@@ -70,14 +68,10 @@ def main():
             name = "shiori.kubo/"
         elif args.name == "齋藤飛鳥":
             name = "asuka.saito/"
-        elif args.name == "斎藤ちはる":
-            name = "chiharu.saito/"
         elif args.name == "斉藤優里":
             name = "yuuri.saito/"
         elif args.name == "阪口珠美":
             name = "tamami.sakaguchi/"
-        elif args.name == "相楽伊織":
-            name = "iori.sagara/"
         elif args.name == "桜井玲香":
             name = "reika.sakurai/"
         elif args.name == "佐々木琴子":
@@ -132,6 +126,7 @@ def main():
     member_path = './members/' + name
     first_url = url + name
     roop_counter = 1
+    fake_counter = 0
 
     while True:
         print('search date is ' + date)
@@ -148,12 +143,15 @@ def main():
         if counter == len(first_url_days) == len(current_url_days):
             counter = 0
             # just in case
-            suspicious_month = str(0) + str(int(month) - 1)
+            # suspicious_month = str(0) + str(int(month) - 1)
+            # 1月サーチの場合 前年12月にブログ記事があるかチェック
             if int(month) == 1:
                 suspicious_month = str(12)
                 suspicious_year = str(int(year) - 1)
+            # 前年に繰越にならない場合
             else:
-                suspicious_month = str(0) + str(int(month) - 1)
+                suspicious_month = str(
+                    int(month) - 1) if int(month) > 10 else str(0) + str(int(month) - 1)
                 suspicious_year = year
             suspicious_date = suspicious_year + suspicious_month
             suspicious_url = url + name + "?d=" + suspicious_date
@@ -164,8 +162,14 @@ def main():
                     counter += 1
             # not updated blog for two conecutive months -> there is no article cuz it is too previous year
             if counter == len(first_url_days) == len(suspicious_days):
-                print('nothing!!!!')
-                break
+                print('nothing!! do more previous articles exist?')
+                fake_counter += 1
+                if fake_counter < 12:
+                    month = suspicious_month
+                    year = suspicious_year
+                    date = suspicious_date
+                else:
+                    break
             else:
                 month = suspicious_month
                 year = suspicious_year
